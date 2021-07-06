@@ -75,7 +75,9 @@ export default class Router extends HTMLElement {
       self.history.pushState({ pageTitle: document.title }, '', event.target.getAttribute('href'))
       this.route(event.target.getAttribute('href'), false, location.href.includes(event.target.getAttribute('href')))
     }
-    this.popstateListener = event => this.route(location.pathname, false, location.href.includes(location.pathname))
+    this.popstateListener = event => {
+      if (!location.hash) this.route(location.pathname, false, location.href.includes(location.pathname))
+    }
   }
 
   connectedCallback () {
@@ -104,6 +106,7 @@ export default class Router extends HTMLElement {
    * @return {void | string}
    */
   route (hash, replace = false, isUrlEqual = true) {
+    if (!hash) return
     // escape on route call which is not set by hashchange event and trigger it here, if needed
     if (hash.includes('#') && location.hash !== hash) {
       if (replace) return location.replace(hash)
