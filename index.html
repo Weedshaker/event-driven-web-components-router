@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  <title>Router Example</title>
+</head>
+<body>
+  <h1>Simple Route Example with hash or single-page app style live-server --entry-file=index.html (use npm run serve)</h1>
+  <h2>hash routes</h2>
+  <ul>
+    <li><a href=#/ >home/</a></li>
+    <li><a href=#/login/ >login/</a></li>
+    <li><a href=#/register/ >register/</a></li>
+    <li><a href=#/settings/ >settings/</a></li>
+    <li><a href=#/editor/ >editor/</a></li>
+    <li><a href=#/article/ >article/</a></li>
+    <li><a href=#/profile/ >profile/</a></li>
+  </ul>
+  <h2>hard routes</h2>
+  <ul>
+    <li><a href=/ route>home/</a></li>
+    <li><a href=/login/ route>login/</a></li>
+    <li><a href=/register/ route>register/</a></li>
+    <li><a href=/settings/ route>settings/</a></li>
+    <li><a href=/editor/ route>editor/</a></li>
+    <li><a href=/article/ route>article/</a></li>
+    <li><a href=/profile/ route>profile/</a></li>
+  </ul>
+  <c-router></c-router>
+  <script rel=preload type=module>
+    /**
+     * First level controllers and organisms are loaded and defined here (loadChildComponents)
+     */
+    Promise.all([
+      import('/src/Router.js').then(module => ['c-router', module.default])
+    ]).then(elements => elements.forEach(element => {
+      // don't define already existing customElements
+      if (element && !customElements.get(element[0])) customElements.define(...element)
+    }))
+  </script>
+</body>
+</html>
