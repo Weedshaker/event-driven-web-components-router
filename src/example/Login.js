@@ -10,7 +10,7 @@ export default class Login extends HTMLElement {
   }
 
   connectedCallback () {
-    this.innerHTML = `Login connected ${this.connectedCount}`
+    this.innerHTML = `Login connected ${this.connectedCount}<br><a href=#/profile/ >profile/</a>`
     this.connectedCount++
   }
 }

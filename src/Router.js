@@ -20,47 +20,55 @@
  * @class Router
  */
 export default class Router extends HTMLElement {
-  constructor () {
+  /**
+   * Creates an instance of Router
+   *
+   * @param {Route[]} routes
+   */
+  constructor (routes = [
+    {
+      name: 'e-home',
+      path: './example/Home.js',
+      regExp: /^[#]{0,1}\/$/
+    },
+    {
+      name: 'e-login',
+      path: './example/Login.js',
+      regExp: /^[#]{0,1}\/login/
+    },
+    {
+      name: 'e-register',
+      path: './example/Register.js',
+      regExp: /^[#]{0,1}\/register/
+    },
+    {
+      name: 'e-settings',
+      path: './example/Settings.js',
+      regExp: /^[#]{0,1}\/settings/
+    },
+    {
+      name: 'e-editor',
+      path: './example/Editor.js',
+      regExp: /^[#]{0,1}\/editor/
+    },
+    {
+      name: 'e-article',
+      path: './example/Article.js',
+      regExp: /^[#]{0,1}\/article/
+    },
+    {
+      name: 'e-profile',
+      path: './example/Profile.js',
+      regExp: /^[#]{0,1}\/profile/
+    }
+  ]) {
     super()
 
     /** @type {Route[]} */
-    this.routes = [
-      {
-        name: 'e-home',
-        path: './example/Home.js',
-        regExp: /^[#]{0,1}\/$/
-      },
-      {
-        name: 'e-login',
-        path: './example/Login.js',
-        regExp: /^[#]{0,1}\/login/
-      },
-      {
-        name: 'e-register',
-        path: './example/Register.js',
-        regExp: /^[#]{0,1}\/register/
-      },
-      {
-        name: 'e-settings',
-        path: './example/Settings.js',
-        regExp: /^[#]{0,1}\/settings/
-      },
-      {
-        name: 'e-editor',
-        path: './example/Editor.js',
-        regExp: /^[#]{0,1}\/editor/
-      },
-      {
-        name: 'e-article',
-        path: './example/Article.js',
-        regExp: /^[#]{0,1}\/article/
-      },
-      {
-        name: 'e-profile',
-        path: './example/Profile.js',
-        regExp: /^[#]{0,1}\/profile/
-      }
-    ]
+    this.routes = (this.getAttribute('routes') ? Router.parseAttribute(this.getAttribute('routes')) || routes : routes).map(route => {
+      if (typeof route.regExp === 'string') route.regExp = new RegExp(route.regExp.replace(/^\/|\/$/g, ''))
+      return route
+    })
 
     /**
      * Listens to hash changes and forwards the new hash to route
@@ -157,5 +165,22 @@ export default class Router extends HTMLElement {
     // clear previous content
     this.innerHTML = ''
     this.appendChild(component)
+  }
+
+  /**
+   * Helper function to parse object strings within attributes
+   * return object if JSON parsable or null
+   *
+   * @static
+   * @param {string} attribute
+   * @return {any | null}
+   */
+  static parseAttribute (attribute) {
+    if (!attribute || typeof attribute !== 'string') return null
+    try {
+      return JSON.parse(attribute.replace(/'/g, '"')) || null
+    } catch (e) {
+      return null
+    }
   }
 }
