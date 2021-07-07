@@ -7,6 +7,7 @@
 
 - npm install
 - npm run serve
+
 npm run serve is important, since for single-page style routing the web server must redirect to an entry file => index.html
 
 
