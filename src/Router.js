@@ -127,7 +127,11 @@ export default class Router extends HTMLElement {
         })).then(component => {
         if (this.shouldComponentRender(route.name, isUrlEqual)) this.render(component)
       // @ts-ignore
-      }).catch(error => console.warn('Router did not find:', route) || error)
+      }).catch(error => {
+        console.warn('Router did not find:', route, error)
+        // force re-fetching at browser level incase it was offline at time of fetch
+        route.path = `${route.path.replace(/\?.*/, '')}?${Date.now()}`
+      })
     }
   }
 
