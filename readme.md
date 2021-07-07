@@ -3,6 +3,13 @@
 > A router for an event driven architecture.
 
 
+### Installation and Serving
+
+- npm install
+- npm run serve
+npm run serve is important, since for single-page style routing the web server must redirect to an entry file => index.html
+
+
 ### Articles
 
 - [Build an Event Driven TodoMVC App with 8 lightweight VanillaJS Web Components](https://dev.to/weedshaker/build-an-event-driven-todomvc-app-with-8-lightweight-vanillajs-web-components-5b65)
