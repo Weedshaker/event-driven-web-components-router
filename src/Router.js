@@ -18,6 +18,10 @@
  *
  * @export
  * @class Router
+ * @attribute {
+ *  {hash|slash|null} [mode=null(null === hash && slash)] hash works out of the box but slash routing requires the web server to use the same entry file (see package.json serve command) as well as a link which shall route the slash must posses the attribute "route", see example at index.html.
+ *  {Route[]} [routes=[preset]]
+ * }
  */
 export default class Router extends HTMLElement {
   /**
@@ -89,20 +93,25 @@ export default class Router extends HTMLElement {
   }
 
   connectedCallback () {
-    self.addEventListener('hashchange', this.hashChangeListener)
-    self.addEventListener('popstate', this.popstateListener)
-    document.body.addEventListener('click', this.clickListener)
-    if (location.hash) {
+    // TODO: mode attribute
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.addEventListener('hashchange', this.hashChangeListener)
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+      self.addEventListener('popstate', this.popstateListener)
+      document.body.addEventListener('click', this.clickListener)
+    }
+    if (location.hash && (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash')) {
       this.route(this.routes.some(route => route.regExp.test(location.hash)) ? location.hash : '#/', true)
-    } else {
+    } else if(!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       this.route(this.routes.some(route => route.regExp.test(location.pathname)) ? location.pathname : '/', true)
     }
   }
 
   disconnectedCallback () {
-    self.removeEventListener('hashchange', this.hashChangeListener)
-    self.removeEventListener('popstate', this.popstateListener)
-    document.body.removeEventListener('click', this.clickListener)
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.removeEventListener('hashchange', this.hashChangeListener)
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+      self.removeEventListener('popstate', this.popstateListener)
+      document.body.removeEventListener('click', this.clickListener)
+    }
   }
 
   /**
@@ -114,6 +123,7 @@ export default class Router extends HTMLElement {
    * @return {void | string}
    */
   route (hash, replace = false, isUrlEqual = true) {
+    // TODO: dispatch Event
     if (!hash) return
     // escape on route call which is not set by hashchange event and trigger it here, if needed
     if (hash.includes('#') && location.hash !== hash) {
