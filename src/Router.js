@@ -12,6 +12,7 @@
 /* global HTMLElement */
 /* global location */
 /* global customElements */
+/* global CustomEvent */
 
 /**
  * As a controller, this component becomes a router
@@ -21,6 +22,7 @@
  * @attribute {
  *  {hash|slash|null} [mode=null(null === hash && slash)] hash works out of the box but slash routing requires the web server to use the same entry file (see package.json serve command) as well as a link which shall route the slash must posses the attribute "route", see example at index.html.
  *  {Route[]} [routes=[preset]]
+ *  {string} [route='route'] Route Event Name
  * }
  */
 export default class Router extends HTMLElement {
@@ -101,7 +103,7 @@ export default class Router extends HTMLElement {
     }
     if (location.hash && (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash')) {
       this.route(this.routes.some(route => route.regExp.test(location.hash)) ? location.hash : '#/', true)
-    } else if(!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+    } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       this.route(this.routes.some(route => route.regExp.test(location.pathname)) ? location.pathname : '/', true)
     }
   }
@@ -134,22 +136,31 @@ export default class Router extends HTMLElement {
     // find the correct route or do nothing
     if ((route = this.routes.find(route => route.regExp.test(hash)))) {
       // reuse route.component, if already set, otherwise import and define custom element
-      // @ts-ignore
-      (route.component
-        ? Promise.resolve(route.component)
-        : import(route.path).then(module => {
-        // don't define already existing customElements
-          if (!customElements.get(route.name)) customElements.define(route.name, module.default)
-          // save it to route object for reuse. grab child if it already exists.
-          return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : document.createElement(route.name))
-        })).then(component => {
-        if (this.shouldComponentRender(route.name, isUrlEqual)) this.render(component)
-      // @ts-ignore
-      }).catch(error => {
-        console.warn('Router did not find:', route, error)
-        // force re-fetching at browser level incase it was offline at time of fetch
-        route.path = `${route.path.replace(/\?.*/, '')}?${Date.now()}`
-      })
+      this.dispatchEvent(new CustomEvent(this.getAttribute('route') || 'route', {
+        detail: {
+          info: (route.component
+            ? Promise.resolve(route.component)
+            : import(route.path).then(module => {
+            // don't define already existing customElements
+              if (!customElements.get(route.name)) customElements.define(route.name, module.default)
+              // save it to route object for reuse. grab child if it already exists.
+              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : document.createElement(route.name))
+            })).then(component => {
+            let rendered = false
+            if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
+            return { component, rendered }
+            // @ts-ignore
+          }).catch(error => {
+            // force re-fetching at browser level incase it was offline at time of fetch
+            route.path = `${route.path.replace(/\?.*/, '')}?${Date.now()}`
+            // @ts-ignore
+            return console.warn('Router did not find:', route, error) || error
+          })
+        },
+        bubbles: true,
+        cancelable: true,
+        composed: true
+      }))
     }
   }
 
