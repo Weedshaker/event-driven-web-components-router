@@ -8,6 +8,11 @@
     }} Route
  */
 
+ /** @typedef {{
+  info: Promise<{ route: Route, location: string, rendered: boolean } | TypeError>
+}} RouteEventDetail
+*/
+
 /* global self */
 /* global HTMLElement */
 /* global location */
@@ -95,7 +100,6 @@ export default class Router extends HTMLElement {
   }
 
   connectedCallback () {
-    // TODO: mode attribute
     if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.addEventListener('hashchange', this.hashChangeListener)
     if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       self.addEventListener('popstate', this.popstateListener)
@@ -125,7 +129,6 @@ export default class Router extends HTMLElement {
    * @return {void | string}
    */
   route (hash, replace = false, isUrlEqual = true) {
-    // TODO: dispatch Event
     if (!hash) return
     // escape on route call which is not set by hashchange event and trigger it here, if needed
     if (hash.includes('#') && location.hash !== hash) {
@@ -137,6 +140,7 @@ export default class Router extends HTMLElement {
     if ((route = this.routes.find(route => route.regExp.test(hash)))) {
       // reuse route.component, if already set, otherwise import and define custom element
       this.dispatchEvent(new CustomEvent(this.getAttribute('route') || 'route', {
+        /** @type {RouteEventDetail} */
         detail: {
           info: (route.component
             ? Promise.resolve(route.component)
@@ -148,7 +152,7 @@ export default class Router extends HTMLElement {
             })).then(component => {
             let rendered = false
             if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
-            return { component, rendered }
+            return { route, location: hash, rendered }
             // @ts-ignore
           }).catch(error => {
             // force re-fetching at browser level incase it was offline at time of fetch

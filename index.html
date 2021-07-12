@@ -75,7 +75,7 @@
       if (element && !customElements.get(element[0])) customElements.define(...element)
     }))
     // listen to the events
-    document.body.addEventListener('route', event => console.log('route', event.detail.info.then(({component, rendered}) => console.log('routed', {component, rendered}))))
+    document.body.addEventListener('route', event => console.log('route', event.detail.info.then(info => console.log('routed', info))))
   </script>
 </body>
 </html>
