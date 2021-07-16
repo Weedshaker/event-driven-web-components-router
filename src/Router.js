@@ -105,7 +105,7 @@ export default class Router extends HTMLElement {
       self.addEventListener('popstate', this.popstateListener)
       document.body.addEventListener('click', this.clickListener)
     }
-    if (location.hash && (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash')) {
+    if ((location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
       this.route(this.routes.some(route => route.regExp.test(location.hash)) ? location.hash : '#/', true)
     } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       this.route(this.routes.some(route => route.regExp.test(location.pathname)) ? location.pathname : '/', true)
