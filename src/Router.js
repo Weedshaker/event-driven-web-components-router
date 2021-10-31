@@ -8,7 +8,7 @@
     }} Route
  */
 
- /** @typedef {{
+/** @typedef {{
   info: Promise<{ route: Route, location: string, rendered: boolean } | TypeError>
 }} RouteEventDetail
 */
