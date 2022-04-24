@@ -167,7 +167,7 @@ export default class Router extends HTMLElement {
             // don't define already existing customElements
               if (!customElements.get(route.name)) customElements.define(route.name, module.default)
               // save it to route object for reuse. grab child if it already exists.
-              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default())
+              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()) // eslint-disable-line
             })).then(component => {
             let rendered = false
             if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
@@ -219,10 +219,10 @@ export default class Router extends HTMLElement {
             if (component === node) {
               isComponentInChildren = true
               node.hidden = false
-              if(typeof component.connectedCallback === 'function') component.connectedCallback()
+              if (typeof component.connectedCallback === 'function') component.connectedCallback()
             } else {
               node.hidden = true
-              if(typeof node.disconnectedCallback === 'function') node.disconnectedCallback()
+              if (typeof node.disconnectedCallback === 'function') node.disconnectedCallback()
             }
           }
         }
