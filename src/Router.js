@@ -35,6 +35,7 @@ export default class Router extends HTMLElement {
    * Creates an instance of Router
    *
    * @param {Route[]} routes
+   * @param {boolean} [hide = false]
    */
   constructor (routes = [
     {
@@ -72,14 +73,32 @@ export default class Router extends HTMLElement {
       path: './example/Profile.js',
       regExp: /^[#]{0,1}\/profile/
     }
-  ]) {
+  ], hide = false) {
     super()
 
     /** @type {Route[]} */
-    this.routes = (this.getAttribute('routes') ? Router.parseAttribute(this.getAttribute('routes')) || routes : routes).map(route => {
+    this.routes = (this.hasAttribute('routes') ? Router.parseAttribute(this.getAttribute('routes')) || routes : routes).map(route => {
       if (typeof route.regExp === 'string') route.regExp = new RegExp(route.regExp.replace(/^\/|\/$/g, ''))
       return route
     })
+    this.hide = this.hasAttribute('hide') ? this.getAttribute('hide') === 'true' : hide
+    if (this.hide) {
+      const style = document.createElement('style')
+      const selector = this.hasAttribute('id') ? `#${this.getAttribute('id')}` : this.nodeName
+      style.innerHTML = /* css */`
+        ${selector} {
+          display: grid !important;
+          width: 100% !important;
+          align-items: start;
+          justify-items: start;
+        }
+        ${selector} > * {
+          grid-column: 1;
+          grid-row: 1;
+        }
+      `
+      this.appendChild(style)
+    }
 
     /**
      * Listens to hash changes and forwards the new hash to route
@@ -148,7 +167,7 @@ export default class Router extends HTMLElement {
             // don't define already existing customElements
               if (!customElements.get(route.name)) customElements.define(route.name, module.default)
               // save it to route object for reuse. grab child if it already exists.
-              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : document.createElement(route.name))
+              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default())
             })).then(component => {
             let rendered = false
             if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
@@ -177,19 +196,43 @@ export default class Router extends HTMLElement {
    */
   shouldComponentRender (name, isUrlEqual = true) {
     if (!this.children || !this.children.length) return true
-    return !isUrlEqual || this.children[0].tagName !== name.toUpperCase()
+    return this.hide || !isUrlEqual || this.children[0].tagName !== name.toUpperCase()
   }
 
   /**
    * renders the page
    *
    * @param {HTMLElement} component
+   * @param {boolean} [hide = this.hide]
    * @return {void}
    */
-  render (component) {
-    // clear previous content
-    this.innerHTML = ''
-    this.appendChild(component)
+  render (component, hide = this.hide) {
+    if (hide) {
+      let isComponentInChildren = false
+      Array.from(this.children).forEach(
+        /**
+         * @param {HTMLElement} node
+         * @return {void}
+         */
+        node => {
+          if (!node.getAttribute('slot')) {
+            if (component === node) {
+              isComponentInChildren = true
+              node.hidden = false
+              if(typeof component.connectedCallback === 'function') component.connectedCallback()
+            } else {
+              node.hidden = true
+              if(typeof node.disconnectedCallback === 'function') node.disconnectedCallback()
+            }
+          }
+        }
+      )
+      if (!isComponentInChildren) this.appendChild(component)
+    } else {
+      // clear previous content
+      this.innerHTML = ''
+      this.appendChild(component)
+    }
   }
 
   /**
