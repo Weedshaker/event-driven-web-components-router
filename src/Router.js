@@ -4,7 +4,8 @@
       name: string,
       path: string,
       regExp: RegExp,
-      component?: HTMLElement
+      component?: HTMLElement,
+      scrollIntoView?: boolean
     }} Route
  */
 
@@ -171,6 +172,7 @@ export default class Router extends HTMLElement {
             })).then(component => {
             let rendered = false
             if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
+            if (route.scrollIntoView) component.scrollIntoView()
             return { route, location: hash, rendered }
             // @ts-ignore
           }).catch(error => {
