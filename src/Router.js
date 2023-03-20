@@ -3,7 +3,8 @@
 /** @typedef {{
       name: string,
       path: string,
-      regExp: RegExp,
+      regExp: RegExp | RegExp[],
+      attributes?: {key: any}
       component?: HTMLElement,
       scrollIntoView?: boolean
     }} Route
@@ -79,7 +80,7 @@ export default class Router extends HTMLElement {
 
     /** @type {Route[]} */
     this.routes = (this.hasAttribute('routes') ? Router.parseAttribute(this.getAttribute('routes')) || routes : routes).map(route => {
-      if (typeof route.regExp === 'string') route.regExp = new RegExp(route.regExp.replace(/^\/|\/$/g, ''))
+      route.regExp = Router.newRegExp(route.regExp)
       return route
     })
     this.hide = this.hasAttribute('hide') ? this.getAttribute('hide') === 'true' : hide
@@ -126,9 +127,9 @@ export default class Router extends HTMLElement {
       document.body.addEventListener('click', this.clickListener)
     }
     if ((location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
-      this.route(this.routes.some(route => route.regExp.test(location.hash)) ? location.hash : '#/', true)
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.hash)) ? location.hash : '#/', true)
     } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
-      this.route(this.routes.some(route => route.regExp.test(location.pathname)) ? location.pathname : '/', true)
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.pathname)) ? location.pathname : '/', true)
     }
   }
 
@@ -157,7 +158,7 @@ export default class Router extends HTMLElement {
     }
     let route
     // find the correct route or do nothing
-    if ((route = this.routes.find(route => route.regExp.test(hash)))) {
+    if ((route = this.routes.find(route => Router.regExpTest(route.regExp, hash)))) {
       // reuse route.component, if already set, otherwise import and define custom element
       this.dispatchEvent(new CustomEvent(this.getAttribute('route') || 'route', {
         /** @type {RouteEventDetail} */
@@ -168,7 +169,13 @@ export default class Router extends HTMLElement {
             // don't define already existing customElements
               if (!customElements.get(route.name)) customElements.define(route.name, module.default)
               // save it to route object for reuse. grab child if it already exists.
-              return (route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()) // eslint-disable-line
+              route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()
+              if (typeof route.attributes === 'object') {
+                for (const key in route.attributes) {
+                  route.component.setAttribute(key, route.attributes[key] || '')
+                }
+              }
+              return route.component // eslint-disable-line
             })).then(component => {
             let rendered = false
             if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
@@ -252,5 +259,30 @@ export default class Router extends HTMLElement {
     } catch (e) {
       return null
     }
+  }
+
+  /**
+   * Create a new Regular Expression
+   *
+   * @static
+   * @param {string|string[]} regExps
+   * @return {RegExp[]}
+   */
+  static newRegExp (regExps) {
+    if (!Array.isArray(regExps)) regExps = [regExps]
+    return regExps.filter(regExp => typeof regExp === 'string').map(regExp => new RegExp(regExp.replace(/^\/|\/$/g, '')))
+  }
+
+  /**
+   * Test a Regular Expression
+   *
+   * @static
+   * @param {RegExp|RegExp[]} regExps
+   * @param {string} testString
+   * @return {boolean}
+   */
+  static regExpTest (regExps, testString) {
+    if (!Array.isArray(regExps)) regExps = [regExps]
+    return regExps.some(regExp => regExp.test(testString))
   }
 }
