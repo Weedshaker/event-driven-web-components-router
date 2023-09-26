@@ -6,7 +6,9 @@
       regExp: RegExp | RegExp[],
       attributes?: {key: any}
       component?: HTMLElement,
-      scrollIntoView?: boolean
+      components?: Map<string, HTMLElement>,
+      scrollIntoView?: boolean,
+      createNew?: boolean
     }} Route
  */
 
@@ -43,37 +45,37 @@ export default class Router extends HTMLElement {
     {
       name: 'e-home',
       path: './example/Home.js',
-      regExp: /^[#]{0,1}\/$/
+      regExp: /[#=]{1}\/$/
     },
     {
       name: 'e-login',
       path: './example/Login.js',
-      regExp: /^[#]{0,1}\/login/
+      regExp: /[#=]{1}\/login/
     },
     {
       name: 'e-register',
       path: './example/Register.js',
-      regExp: /^[#]{0,1}\/register/
+      regExp: /[#=]{1}\/register/
     },
     {
       name: 'e-settings',
       path: './example/Settings.js',
-      regExp: /^[#]{0,1}\/settings/
+      regExp: /[#=]{1}\/settings/
     },
     {
       name: 'e-editor',
       path: './example/Editor.js',
-      regExp: /^[#]{0,1}\/editor/
+      regExp: /[#=]{1}\/editor/
     },
     {
       name: 'e-article',
       path: './example/Article.js',
-      regExp: /^[#]{0,1}\/article/
+      regExp: /[#=]{1}\/article/
     },
     {
       name: 'e-profile',
       path: './example/Profile.js',
-      regExp: /^[#]{0,1}\/profile/
+      regExp: /[#=]{1}\/profile/
     }
   ], hide = false) {
     super()
@@ -115,9 +117,23 @@ export default class Router extends HTMLElement {
       self.history.pushState({ pageTitle: document.title }, '', event.target.getAttribute('href'))
       this.route(event.target.getAttribute('href'), false, location.href.includes(event.target.getAttribute('href')))
     }
+    /**
+     * Listens to history navigation and forwards the new hash to route
+     */
     this.popstateListener = event => {
-      if (!location.hash) this.route(location.pathname, false, location.href.includes(location.pathname))
+      if (!location.hash) this.route(location.search || location.pathname, false) // TODO: consider some logic regarding isUrlEqual
     }
+    /**
+     * Listens to history pushState and forwards the new hash to route
+     */
+    self.history.pushState = new Proxy(self.history.pushState, {
+      apply: (target, thisArg, argArray) => {
+        const result = target.apply(thisArg, argArray);
+        console.log('route', location.href, location.search, location.href.includes(location.search));
+        this.route(location.search, false, false) // TODO: consider some logic regarding isUrlEqual
+        return result
+      },
+    })
   }
 
   connectedCallback () {
@@ -163,13 +179,23 @@ export default class Router extends HTMLElement {
       this.dispatchEvent(new CustomEvent(this.getAttribute('route') || 'route', {
         /** @type {RouteEventDetail} */
         detail: {
-          info: (route.component
+          info: (!route.createNew && route.component
             ? Promise.resolve(route.component)
             : import(route.path).then(module => {
             // don't define already existing customElements
               if (!customElements.get(route.name)) customElements.define(route.name, module.default)
               // save it to route object for reuse. grab child if it already exists.
-              route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()
+              if (route.createNew) {
+                if (route.components) {
+                  route.component = route.components.has(location.href)
+                   ? route.components.get(location.href)
+                   : route.components.set(location.href, new module.default()).get(location.href)
+                } else {
+                  route.components = new Map([[location.href, (route.component = new module.default())]])
+                }
+              } else {
+                route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()
+              }
               if (typeof route.attributes === 'object') {
                 for (const key in route.attributes) {
                   route.component.setAttribute(key, route.attributes[key] || '')

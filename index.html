@@ -16,7 +16,7 @@
     <li><a href=#/article/ >article/</a></li>
     <li><a href=#/profile/ >profile/</a></li>
   </ul>
-  <h2>hard routes</h2>
+  <h2>hard routes (not working on github pages cause of no reroute server settings "/")</h2>
   <ul>
     <li><a href=/ route>home/</a></li>
     <li><a href=/login/ route>login/</a></li>
@@ -26,44 +26,101 @@
     <li><a href=/article/ route>article/</a></li>
     <li><a href=/profile/ route>profile/</a></li>
   </ul>
-  <c-router></c-router>
-  <!--<c-router routes="[
+  <h2>query param routes</h2>
+  <ul>
+    <li><a href=?page=/ route>home/</a></li>
+    <li><a href=?page=/login/ route>login/</a></li>
+    <li><a href=?page=/register/ route>register/</a></li>
+    <li><a href=?page=/settings/ route>settings/</a></li>
+    <li><a href=?page=/editor/ route>editor/</a></li>
+    <li><a href=?page=/article/ route>article/</a></li>
+    <li><a href=?page=/profile/ route>profile/</a></li>
+  </ul>
+  <h2>query param routes by button click history.pushState</h2>
+  <ul>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/')" route>home/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/login/')" route>login/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/')" route>register/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/&cake=true')" route>register cake/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/settings/')" route>settings/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/editor/')" route>editor/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/article/')" route>article/</button></li>
+    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/profile/')" route>profile/</button></li>
+  </ul>
+  <!--<c-router></c-router>-->
+  <c-router routes="[
     {
       'name': 'e-home',
       'path': './example/Home.js',
-      'regExp': '/^[#]{0,1}\/$/'
+      'regExp': '/[#=]{1}\/$/'
     },
     {
       'name': 'e-login',
       'path': './example/Login_DONT_FIND_ME.js',
-      'regExp': '/^[#]{0,1}\/login/'
+      'regExp': '/[#=]{1}\/login/'
     },
     {
       'name': 'e-register',
       'path': './example/Register.js',
-      'regExp': '/^[#]{0,1}\/register/'
+      'regExp': '/[#=]{1}\/register/',
+      'createNew': true
     },
     {
       'name': 'e-settings',
       'path': './example/Settings_DONT_FIND_ME.js',
-      'regExp': '/^[#]{0,1}\/settings/'
+      'regExp': '/[#=]{1}\/settings/'
     },
     {
       'name': 'e-editor',
       'path': './example/Editor.js',
-      'regExp': '/^[#]{0,1}\/editor/'
+      'regExp': '/[#=]{1}\/editor/'
     },
     {
       'name': 'e-article',
       'path': './example/Article_DONT_FIND_ME.js',
-      'regExp': '/^[#]{0,1}\/article/'
+      'regExp': '/[#=]{1}\/article/'
     },
     {
       'name': 'e-profile',
       'path': './example/Profile.js',
-      'regExp': '/^[#]{0,1}\/profile/'
+      'regExp': '/[#=]{1}\/profile/'
+    },
+    {
+      'name': 'e-home',
+      'path': './example/Home.js',
+      'regExp': '/^\/$/'
+    },
+    {
+      'name': 'e-login',
+      'path': './example/Login_DONT_FIND_ME.js',
+      'regExp': '/^\/login/'
+    },
+    {
+      'name': 'e-register',
+      'path': './example/Register.js',
+      'regExp': '/^\/register/'
+    },
+    {
+      'name': 'e-settings',
+      'path': './example/Settings_DONT_FIND_ME.js',
+      'regExp': '/^\/settings/'
+    },
+    {
+      'name': 'e-editor',
+      'path': './example/Editor.js',
+      'regExp': '/^\/editor/'
+    },
+    {
+      'name': 'e-article',
+      'path': './example/Article_DONT_FIND_ME.js',
+      'regExp': '/^\/article/'
+    },
+    {
+      'name': 'e-profile',
+      'path': './example/Profile.js',
+      'regExp': '/^\/profile/'
     }
-  ]"></c-router>-->
+  ]"></c-router>
   <script rel=preload type=module>
     /**
      * First level controllers and organisms are loaded and defined here (loadChildComponents)
