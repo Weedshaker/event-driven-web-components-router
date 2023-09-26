@@ -121,16 +121,17 @@ export default class Router extends HTMLElement {
      * Listens to history navigation and forwards the new hash to route
      */
     this.popstateListener = event => {
-      if (!location.hash) this.route(location.search || location.pathname, false) // TODO: consider some logic regarding isUrlEqual
+      // hash changes are already going through the hashChangeListener
+      if (!location.hash) this.route(location.search || location.pathname, false, false)
     }
     /**
      * Listens to history pushState and forwards the new hash to route
      */
     self.history.pushState = new Proxy(self.history.pushState, {
       apply: (target, thisArg, argArray) => {
+        const oldLocationSearch = location.search
         const result = target.apply(thisArg, argArray);
-        console.log('route', location.href, location.search, location.href.includes(location.search));
-        this.route(location.search, false, false) // TODO: consider some logic regarding isUrlEqual
+        this.route(location.search, false, location.search === oldLocationSearch)
         return result
       },
     })
