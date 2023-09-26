@@ -40,14 +40,14 @@
       </ul>
       <h2>query param routes by button click history.pushState</h2>
       <ul>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/')" route>home/</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/login/')" route>login/ (false route)</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/')" route>register/</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/&cake=true')" route>register cake/</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/settings/')" route>settings/ (false route)</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/editor/')" route>editor/</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/article/')" route>article/ (false route)</button></li>
-        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/profile/')" route>profile/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/')" route>home/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/login/')" route>login/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/register/')" route>register/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/register/&cake=true')" route>register cake/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/settings/')" route>settings/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/editor/')" route>editor/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/article/')" route>article/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + location.pathname + '?page=/profile/')" route>profile/</button></li>
       </ul>
     </div>
     <!--<c-router></c-router>-->
