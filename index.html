@@ -6,127 +6,131 @@
 </head>
 <body>
   <h1>Simple Route Example with hash or single-page app style live-server --entry-file=index.html (use npm run serve)</h1>
-  <h2>hash routes</h2>
-  <ul>
-    <li><a href=#/ >home/</a></li>
-    <li><a href=#/login/ >login/</a></li>
-    <li><a href=#/register/ >register/</a></li>
-    <li><a href=#/settings/ >settings/</a></li>
-    <li><a href=#/editor/ >editor/</a></li>
-    <li><a href=#/article/ >article/</a></li>
-    <li><a href=#/profile/ >profile/</a></li>
-  </ul>
-  <h2>hard routes (not working on github pages cause of no reroute server settings "/")</h2>
-  <ul>
-    <li><a href=/ route>home/</a></li>
-    <li><a href=/login/ route>login/</a></li>
-    <li><a href=/register/ route>register/</a></li>
-    <li><a href=/settings/ route>settings/</a></li>
-    <li><a href=/editor/ route>editor/</a></li>
-    <li><a href=/article/ route>article/</a></li>
-    <li><a href=/profile/ route>profile/</a></li>
-  </ul>
-  <h2>query param routes</h2>
-  <ul>
-    <li><a href=?page=/ route>home/</a></li>
-    <li><a href=?page=/login/ route>login/</a></li>
-    <li><a href=?page=/register/ route>register/</a></li>
-    <li><a href=?page=/settings/ route>settings/</a></li>
-    <li><a href=?page=/editor/ route>editor/</a></li>
-    <li><a href=?page=/article/ route>article/</a></li>
-    <li><a href=?page=/profile/ route>profile/</a></li>
-  </ul>
-  <h2>query param routes by button click history.pushState</h2>
-  <ul>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/')" route>home/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/login/')" route>login/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/')" route>register/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/&cake=true')" route>register cake/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/settings/')" route>settings/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/editor/')" route>editor/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/article/')" route>article/</button></li>
-    <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/profile/')" route>profile/</button></li>
-  </ul>
-  <!--<c-router></c-router>-->
-  <c-router routes="[
-    {
-      'name': 'e-home',
-      'path': './example/Home.js',
-      'regExp': '/[#=]{1}\/$/'
-    },
-    {
-      'name': 'e-login',
-      'path': './example/Login_DONT_FIND_ME.js',
-      'regExp': '/[#=]{1}\/login/'
-    },
-    {
-      'name': 'e-register',
-      'path': './example/Register.js',
-      'regExp': '/[#=]{1}\/register/',
-      'createNew': true
-    },
-    {
-      'name': 'e-settings',
-      'path': './example/Settings_DONT_FIND_ME.js',
-      'regExp': '/[#=]{1}\/settings/'
-    },
-    {
-      'name': 'e-editor',
-      'path': './example/Editor.js',
-      'regExp': '/[#=]{1}\/editor/'
-    },
-    {
-      'name': 'e-article',
-      'path': './example/Article_DONT_FIND_ME.js',
-      'regExp': '/[#=]{1}\/article/'
-    },
-    {
-      'name': 'e-profile',
-      'path': './example/Profile.js',
-      'regExp': '/[#=]{1}\/profile/'
-    },
-    {
-      'name': 'e-home',
-      'path': './example/Home.js',
-      'regExp': '/^\/$/'
-    },
-    {
-      'name': 'e-login',
-      'path': './example/Login_DONT_FIND_ME.js',
-      'regExp': '/^\/login/'
-    },
-    {
-      'name': 'e-register',
-      'path': './example/Register.js',
-      'regExp': '/^\/register/'
-    },
-    {
-      'name': 'e-settings',
-      'path': './example/Settings_DONT_FIND_ME.js',
-      'regExp': '/^\/settings/'
-    },
-    {
-      'name': 'e-editor',
-      'path': './example/Editor.js',
-      'regExp': '/^\/editor/'
-    },
-    {
-      'name': 'e-article',
-      'path': './example/Article_DONT_FIND_ME.js',
-      'regExp': '/^\/article/'
-    },
-    {
-      'name': 'e-profile',
-      'path': './example/Profile.js',
-      'regExp': '/^\/profile/'
-    }
-  ]"></c-router>
+  <div class="flex">
+    <div>
+      <h2>hash routes</h2>
+      <ul>
+        <li><a href=#/ >home/</a></li>
+        <li><a href=#/login/ >login/ (false route)</a></li>
+        <li><a href=#/register/ >register/</a></li>
+        <li><a href=#/settings/ >settings/ (false route)</a></li>
+        <li><a href=#/editor/ >editor/</a></li>
+        <li><a href=#/article/ >article/ (false route)</a></li>
+        <li><a href=#/profile/ >profile/</a></li>
+      </ul>
+      <h2>hard routes (not working on github pages cause of no reroute server settings "/")</h2>
+      <ul>
+        <li><a href=/ route>home/</a></li>
+        <li><a href=/login/ route>login/ (false route)</a></li>
+        <li><a href=/register/ route>register/</a></li>
+        <li><a href=/settings/ route>settings/ (false route)</a></li>
+        <li><a href=/editor/ route>editor/</a></li>
+        <li><a href=/article/ route>article/ (false route)</a></li>
+        <li><a href=/profile/ route>profile/</a></li>
+      </ul>
+      <h2>query param routes</h2>
+      <ul>
+        <li><a href=?page=/ route>home/</a></li>
+        <li><a href=?page=/login/ route>login/ (false route)</a></li>
+        <li><a href=?page=/register/ route>register/</a></li>
+        <li><a href=?page=/settings/ route>settings/ (false route)</a></li>
+        <li><a href=?page=/editor/ route>editor/</a></li>
+        <li><a href=?page=/article/ route>article/ (false route)</a></li>
+        <li><a href=?page=/profile/ route>profile/</a></li>
+      </ul>
+      <h2>query param routes by button click history.pushState</h2>
+      <ul>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/')" route>home/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/login/')" route>login/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/')" route>register/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/register/&cake=true')" route>register cake/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/settings/')" route>settings/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/editor/')" route>editor/</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/article/')" route>article/ (false route)</button></li>
+        <li><button onclick="history.pushState(history.state, document.title, location.origin + '?page=/profile/')" route>profile/</button></li>
+      </ul>
+    </div>
+    <!--<c-router></c-router>-->
+    <c-router routes="[
+      {
+        'name': 'e-home',
+        'path': './example/Home.js',
+        'regExp': '/[#=]{1}\/$/'
+      },
+      {
+        'name': 'e-login',
+        'path': './example/Login_DONT_FIND_ME.js',
+        'regExp': '/[#=]{1}\/login/'
+      },
+      {
+        'name': 'e-register',
+        'path': './example/Register.js',
+        'regExp': '/[#=]{1}\/register/',
+        'createNew': true
+      },
+      {
+        'name': 'e-settings',
+        'path': './example/Settings_DONT_FIND_ME.js',
+        'regExp': '/[#=]{1}\/settings/'
+      },
+      {
+        'name': 'e-editor',
+        'path': './example/Editor.js',
+        'regExp': '/[#=]{1}\/editor/'
+      },
+      {
+        'name': 'e-article',
+        'path': './example/Article_DONT_FIND_ME.js',
+        'regExp': '/[#=]{1}\/article/'
+      },
+      {
+        'name': 'e-profile',
+        'path': './example/Profile.js',
+        'regExp': '/[#=]{1}\/profile/'
+      },
+      {
+        'name': 'e-home',
+        'path': './example/Home.js',
+        'regExp': '/^\/$/'
+      },
+      {
+        'name': 'e-login',
+        'path': './example/Login_DONT_FIND_ME.js',
+        'regExp': '/^\/login/'
+      },
+      {
+        'name': 'e-register',
+        'path': './example/Register.js',
+        'regExp': '/^\/register/'
+      },
+      {
+        'name': 'e-settings',
+        'path': './example/Settings_DONT_FIND_ME.js',
+        'regExp': '/^\/settings/'
+      },
+      {
+        'name': 'e-editor',
+        'path': './example/Editor.js',
+        'regExp': '/^\/editor/'
+      },
+      {
+        'name': 'e-article',
+        'path': './example/Article_DONT_FIND_ME.js',
+        'regExp': '/^\/article/'
+      },
+      {
+        'name': 'e-profile',
+        'path': './example/Profile.js',
+        'regExp': '/^\/profile/'
+      }
+    ]"></c-router>
+  </div>
   <script rel=preload type=module>
     /**
      * First level controllers and organisms are loaded and defined here (loadChildComponents)
      */
     Promise.all([
-      import('/src/Router.js').then(module => ['c-router', module.default])
+      import('./src/Router.js').then(module => ['c-router', module.default])
     ]).then(elements => elements.forEach(element => {
       // don't define already existing customElements
       if (element && !customElements.get(element[0])) customElements.define(...element)
@@ -134,5 +138,16 @@
     // listen to the events
     document.body.addEventListener('route', event => console.log('route', event.detail.info.then(info => console.log('routed', info))))
   </script>
+  <style>
+    .flex {
+      display: flex;
+      justify-content: space-between;
+    }
+    c-router {
+      border: 1px solid black;
+      padding: 2em;
+      background-color: lightgray;
+    }
+  </style>
 </body>
 </html>
