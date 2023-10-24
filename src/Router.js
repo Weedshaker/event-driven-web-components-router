@@ -130,10 +130,10 @@ export default class Router extends HTMLElement {
     self.history.pushState = new Proxy(self.history.pushState, {
       apply: (target, thisArg, argArray) => {
         const oldLocationSearch = location.search
-        const result = target.apply(thisArg, argArray);
+        const result = target.apply(thisArg, argArray)
         this.route(location.search, false, location.search === oldLocationSearch)
         return result
-      },
+      }
     })
   }
 
@@ -189,8 +189,8 @@ export default class Router extends HTMLElement {
               if (route.createNew) {
                 if (route.components) {
                   route.component = route.components.has(location.href)
-                   ? route.components.get(location.href)
-                   : route.components.set(location.href, new module.default()).get(location.href)
+                    ? route.components.get(location.href)
+                    : route.components.set(location.href, new module.default()).get(location.href)
                 } else {
                   route.components = new Map([[location.href, (route.component = new module.default())]])
                 }
