@@ -190,12 +190,12 @@ export default class Router extends HTMLElement {
                 if (route.components) {
                   route.component = route.components.has(location.href)
                     ? route.components.get(location.href)
-                    : route.components.set(location.href, new module.default()).get(location.href)
+                    : route.components.set(location.href, new module.default()).get(location.href) // eslint-disable-line
                 } else {
-                  route.components = new Map([[location.href, (route.component = new module.default())]])
+                  route.components = new Map([[location.href, (route.component = new module.default())]]) // eslint-disable-line
                 }
               } else {
-                route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default()
+                route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default() // eslint-disable-line
               }
               if (typeof route.attributes === 'object') {
                 for (const key in route.attributes) {
