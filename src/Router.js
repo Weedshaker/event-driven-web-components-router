@@ -29,7 +29,7 @@
  * @export
  * @class Router
  * @attribute {
- *  {hash|slash|null} [mode=null(null === hash && slash)] hash works out of the box but slash routing requires the web server to use the same entry file (see package.json serve command) as well as a link which shall route the slash must posses the attribute "route", see example at index.html.
+ *  {hash|search|slash|null} [mode=null(null === hash && slash)] hash works out of the box but slash routing requires the web server to use the same entry file (see package.json serve command) as well as a link which shall route the slash must posses the attribute "route", see example at index.html.
  *  {Route[]} [routes=[preset]]
  *  {string} [route='route'] Route Event Name
  * }
@@ -81,6 +81,7 @@ export default class Router extends HTMLElement {
     super()
 
     /** @type {Route[]} */
+    // @ts-ignore
     this.routes = (this.hasAttribute('routes') ? Router.parseAttribute(this.getAttribute('routes')) || routes : routes).map(route => {
       route.regExp = Router.newRegExp(route.regExp)
       return route
@@ -145,7 +146,9 @@ export default class Router extends HTMLElement {
     }
     if ((location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.hash)) ? location.hash : '#/', true)
-    } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+    } else if ((location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.search)) ? location.search : '=/', true)
+    }else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.pathname)) ? location.pathname : '/', true)
     }
   }
@@ -247,7 +250,7 @@ export default class Router extends HTMLElement {
       let isComponentInChildren = false
       Array.from(this.children).forEach(
         /**
-         * @param {HTMLElement} node
+         * @param {any} node
          * @return {void}
          */
         node => {
@@ -255,6 +258,7 @@ export default class Router extends HTMLElement {
             if (component === node) {
               isComponentInChildren = true
               node.hidden = false
+              // @ts-ignore
               if (typeof component.connectedCallback === 'function') component.connectedCallback()
             } else {
               node.hidden = true
