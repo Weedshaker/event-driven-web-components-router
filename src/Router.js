@@ -148,7 +148,7 @@ export default class Router extends HTMLElement {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.hash)) ? location.hash : '#/', true)
     } else if ((location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.search)) ? location.search : '=/', true)
-    }else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+    } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.pathname)) ? location.pathname : '/', true)
     }
   }
