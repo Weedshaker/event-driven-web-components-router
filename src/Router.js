@@ -113,10 +113,12 @@ export default class Router extends HTMLElement {
      * Listens to clicks and forwards the new href to route
      */
     this.clickListener = event => {
-      if (!event || !event.target || !event.target.getAttribute('href') || !event.target.hasAttribute('route')) return
+      if (!event || typeof event.composedPath !== 'function') return
+      const target = event.composedPath().find(node => node.tagName === 'A');
+      if (!target || !target.getAttribute('href') || !target.hasAttribute('route')) return
       event.preventDefault()
-      self.history.pushState({ pageTitle: document.title }, '', event.target.getAttribute('href'))
-      this.route(event.target.getAttribute('href'), false, location.href.includes(event.target.getAttribute('href')))
+      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href'))
+      this.route(target.getAttribute('href'), false, location.href.includes(target.getAttribute('href')))
     }
     /**
      * Listens to history navigation and forwards the new hash to route
