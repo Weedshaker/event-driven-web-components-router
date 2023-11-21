@@ -20,6 +20,7 @@
 /* global self */
 /* global HTMLElement */
 /* global location */
+/* global decodeURIComponent */
 /* global customElements */
 /* global CustomEvent */
 
@@ -108,7 +109,10 @@ export default class Router extends HTMLElement {
     /**
      * Listens to hash changes and forwards the new hash to route
      */
-    this.hashChangeListener = event => this.route(location.hash, false, location.href.includes(event.newURL))
+    this.hashChangeListener = event => {
+      this.resetLocation()
+      this.route(this.location.hash, false, this.location.href.includes(event.newURL))
+    }
     /**
      * Listens to clicks and forwards the new href to route
      */
@@ -116,25 +120,31 @@ export default class Router extends HTMLElement {
       if (!event || typeof event.composedPath !== 'function') return
       const target = event.composedPath().find(node => node.tagName === 'A');
       if (!target || !target.getAttribute('href') || !target.hasAttribute('route')) return
+      this.resetLocation()
       event.preventDefault()
-      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href'))
-      this.route(target.getAttribute('href'), false, location.href.includes(target.getAttribute('href')))
+      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?' 
+        ? `${this.location.origin}/${target.getAttribute('href')}`
+        : target.getAttribute('href')
+      )
+      this.route(target.getAttribute('href'), false, this.location.href.includes(target.getAttribute('href')))
     }
     /**
      * Listens to history navigation and forwards the new hash to route
      */
     this.popstateListener = event => {
+      this.resetLocation()
       // hash changes are already going through the hashChangeListener
-      if (!location.hash) this.route(location.search || location.pathname, false, false)
+      if (!this.location.hash) this.route(this.location.search || this.location.pathname, false, false)
     }
     /**
      * Listens to history pushState and forwards the new hash to route
      */
     self.history.pushState = new Proxy(self.history.pushState, {
       apply: (target, thisArg, argArray) => {
-        const oldLocationSearch = location.search
+        this.resetLocation()
+        const oldLocationSearch = this.location.search
         const result = target.apply(thisArg, argArray)
-        this.route(location.search, false, location.search === oldLocationSearch)
+        this.route(this.location.search, false, this.location.search === oldLocationSearch)
         return result
       }
     })
@@ -146,12 +156,13 @@ export default class Router extends HTMLElement {
       self.addEventListener('popstate', this.popstateListener)
       document.body.addEventListener('click', this.clickListener)
     }
-    if ((location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.hash)) ? location.hash : '#/', true)
-    } else if ((location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.search)) ? location.search : '=/', true)
+    this.resetLocation()
+    if ((this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.hash)) ? this.location.hash : '#/', true)
+    } else if ((this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.search)) ? this.location.search : '=/', true)
     } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, location.pathname)) ? location.pathname : '/', true)
+      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.pathname)) ? this.location.pathname : '/', true)
     }
   }
 
@@ -174,7 +185,7 @@ export default class Router extends HTMLElement {
   route (hash, replace = false, isUrlEqual = true) {
     if (!hash) return
     // escape on route call which is not set by hashchange event and trigger it here, if needed
-    if (hash.includes('#') && location.hash !== hash) {
+    if (hash.includes('#') && this.location.hash !== hash) {
       if (replace) return location.replace(hash)
       return (location.hash = hash)
     }
@@ -193,11 +204,11 @@ export default class Router extends HTMLElement {
               // save it to route object for reuse. grab child if it already exists.
               if (route.createNew) {
                 if (route.components) {
-                  route.component = route.components.has(location.href)
-                    ? route.components.get(location.href)
-                    : route.components.set(location.href, new module.default()).get(location.href) // eslint-disable-line
+                  route.component = route.components.has(this.location.href)
+                    ? route.components.get(this.location.href)
+                    : route.components.set(this.location.href, new module.default()).get(this.location.href) // eslint-disable-line
                 } else {
-                  route.components = new Map([[location.href, (route.component = new module.default())]]) // eslint-disable-line
+                  route.components = new Map([[this.location.href, (route.component = new module.default())]]) // eslint-disable-line
                 }
               } else {
                 route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default() // eslint-disable-line
@@ -317,5 +328,19 @@ export default class Router extends HTMLElement {
   static regExpTest (regExps, testString) {
     if (!Array.isArray(regExps)) regExps = [regExps]
     return regExps.some(regExp => regExp.test(testString))
+  }
+
+  resetLocation () {
+    this._location = null
+  }
+
+  /**
+   * decodeURIComponent the whole global location object
+   * 
+   * @return {Location}
+   */
+  get location () {
+    // @ts-ignore
+    return this._location || (this._location = Object.keys(location).reduce((acc, curr) => Object.assign(acc, {[curr]: decodeURIComponent(location[curr])}), {}))
   }
 }
