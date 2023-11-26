@@ -118,11 +118,11 @@ export default class Router extends HTMLElement {
      */
     this.clickListener = event => {
       if (!event || typeof event.composedPath !== 'function') return
-      const target = event.composedPath().find(node => node.tagName === 'A');
+      const target = event.composedPath().find(node => node.tagName === 'A')
       if (!target || !target.getAttribute('href') || !target.hasAttribute('route')) return
       this.resetLocation()
       event.preventDefault()
-      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?' 
+      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?'
         ? `${this.location.origin}/${target.getAttribute('href')}`
         : target.getAttribute('href')
       )
@@ -336,11 +336,11 @@ export default class Router extends HTMLElement {
 
   /**
    * decodeURIComponent the whole global location object
-   * 
+   *
    * @return {Location}
    */
   get location () {
     // @ts-ignore
-    return this._location || (this._location = Object.keys(location).reduce((acc, curr) => Object.assign(acc, {[curr]: decodeURIComponent(location[curr])}), {}))
+    return this._location || (this._location = Object.keys(location).reduce((acc, curr) => Object.assign(acc, { [curr]: decodeURIComponent(location[curr]) }), {}))
   }
 }
