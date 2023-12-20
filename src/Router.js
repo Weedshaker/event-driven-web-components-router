@@ -13,7 +13,7 @@
  */
 
 /** @typedef {{
-  info: Promise<{ route: Route, location: string, rendered: boolean } | TypeError>
+  info: Promise<{ route: Route, location: string, rendered: boolean, transition: any } | TypeError>
 }} RouteEventDetail
 */
 
@@ -221,9 +221,18 @@ export default class Router extends HTMLElement {
               return route.component // eslint-disable-line
             })).then(component => {
             let rendered = false
-            if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) this.render(component)
+            let transition = null
+            if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) {
+              // @ts-ignore
+              if (document.startViewTransition) {
+                // @ts-ignore
+                transition = document.startViewTransition(() => Promise.resolve(this.render(component))) // https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+              } else {
+                this.render(component)
+              }
+            }
             if (route.scrollIntoView) component.scrollIntoView()
-            return { route, location: hash, rendered }
+            return { route, location: hash, rendered, transition }
             // @ts-ignore
           }).catch(error => {
             // force re-fetching at browser level incase it was offline at time of fetch
