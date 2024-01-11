@@ -8,7 +8,7 @@
       component?: HTMLElement,
       components?: Map<string, HTMLElement>,
       scrollIntoView?: boolean,
-      createNew?: boolean
+      createNew?: boolean | string
     }} Route
  */
 
@@ -120,12 +120,12 @@ export default class Router extends HTMLElement {
       if (!event || typeof event.composedPath !== 'function') return
       const target = event.composedPath().find(node => node.tagName === 'A')
       if (!target || !target.getAttribute('href') || !target.hasAttribute('route')) return
-      this.resetLocation()
       event.preventDefault()
-      self.history.pushState({ pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?'
+      self.history.pushState({ ...history.state, pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?'
         ? `${this.location.origin}/${target.getAttribute('href')}`
         : target.getAttribute('href')
       )
+      this.resetLocation()
       this.route(target.getAttribute('href'), false, this.location.href.includes(target.getAttribute('href')))
     }
     /**
@@ -138,16 +138,26 @@ export default class Router extends HTMLElement {
     }
     /**
      * Listens to history pushState and forwards the new hash to route
+     * https://developer.mozilla.org/en-US/docs/Web/API/History/pushState
      */
-    self.history.pushState = new Proxy(self.history.pushState, {
-      apply: (target, thisArg, argArray) => {
-        this.resetLocation()
+    const handler = {
+      apply:
+      /**
+       * @param {(state: any, unused: '', url: URL)=>void} target
+       * @param {History} thisArg
+       * @param {[state: any, unused: '', url: URL]} argArray
+       */
+      (target, thisArg, argArray) => {
         const oldLocationSearch = this.location.search
+        const newLocationSearch = (new URL(argArray[2])).search
         const result = target.apply(thisArg, argArray)
-        this.route(this.location.search, false, this.location.search === oldLocationSearch)
+        this.resetLocation()
+        this.route(this.location.search, false, oldLocationSearch === newLocationSearch)
         return result
       }
-    })
+    }
+    self.history.pushState = new Proxy(self.history.pushState, handler)
+    self.history.replaceState = new Proxy(self.history.replaceState, handler)
   }
 
   connectedCallback () {
@@ -199,16 +209,19 @@ export default class Router extends HTMLElement {
           info: (!route.createNew && route.component
             ? Promise.resolve(route.component)
             : import(route.path).then(module => {
-            // don't define already existing customElements
+              // don't define already existing customElements
               if (!customElements.get(route.name)) customElements.define(route.name, module.default)
               // save it to route object for reuse. grab child if it already exists.
               if (route.createNew) {
+                const key = typeof route.createNew === 'string'
+                  ? (new URL(this.location.href)).searchParams.get(route.createNew) || this.location.href
+                  : this.location.href
                 if (route.components) {
-                  route.component = route.components.has(this.location.href)
-                    ? route.components.get(this.location.href)
-                    : route.components.set(this.location.href, new module.default()).get(this.location.href) // eslint-disable-line
+                  route.component = route.components.has(key)
+                    ? route.components.get(key)
+                    : route.components.set(key, new module.default()).get(key) // eslint-disable-line
                 } else {
-                  route.components = new Map([[this.location.href, (route.component = new module.default())]]) // eslint-disable-line
+                  route.components = new Map([[key, (route.component = new module.default())]]) // eslint-disable-line
                 }
               } else {
                 route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default() // eslint-disable-line
@@ -279,18 +292,18 @@ export default class Router extends HTMLElement {
           if (!node.getAttribute('slot')) {
             if (component === node) {
               isComponentInChildren = true
-              node.hidden = false
               // @ts-ignore
-              if (typeof component.connectedCallback === 'function') component.connectedCallback()
+              if (component.hidden && typeof component.connectedCallback === 'function') component.connectedCallback()
+              component.hidden = false
             } else {
-              node.hidden = true
               if (typeof node.disconnectedCallback === 'function') node.disconnectedCallback()
+              node.hidden = true
             }
           }
         }
       )
       if (!isComponentInChildren) this.appendChild(component)
-    } else {
+    } else if (component !== this.children[0]) {
       // clear previous content
       this.innerHTML = ''
       this.appendChild(component)
