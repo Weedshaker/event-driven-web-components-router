@@ -202,57 +202,67 @@ export default class Router extends HTMLElement {
     let route
     // find the correct route or do nothing
     if ((route = this.routes.find(route => Router.regExpTest(route.regExp, hash)))) {
+      let info
+      // grab child if it already exists
+      if (!route.createNew && route.component) {
+        info = Promise.resolve(route.component)
+      } else {
+        const key = typeof route.createNew === 'string'
+          ? (new URL(this.location.href)).searchParams.get(route.createNew) || this.location.href
+          : this.location.href
+        // grab child if it already exists
+        if (route.createNew && route.components && route.components.has(key)) {
+          info = Promise.resolve(route.components.get(key))
+        } else {
+          // import the child if it is the first route to it
+          info = import(route.path).then(module => {
+            // don't define already existing customElements
+            if (!customElements.get(route.name)) customElements.define(route.name, module.default)
+            // save it to route object for reuse
+            if (route.createNew) {
+              if (route.components) {
+                route.component = route.components.set(key, new module.default()).get(key) // eslint-disable-line
+              } else {
+                route.components = new Map([[key, (route.component = new module.default())]]) // eslint-disable-line
+              }
+            } else {
+              route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default() // eslint-disable-line
+            }
+            if (typeof route.attributes === 'object') {
+              for (const key in route.attributes) {
+                route.component.setAttribute(key, route.attributes[key] || '')
+              }
+            }
+            return route.component // eslint-disable-line
+          })
+        }
+      }
+      info.then(component => {
+        let rendered = false
+        let transition = null
+        if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) {
+          // @ts-ignore
+          if (document.startViewTransition) {
+            // @ts-ignore
+            transition = document.startViewTransition(() => Promise.resolve(this.render(component))) // https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
+          } else {
+            this.render(component)
+          }
+        }
+        if (route.scrollIntoView) component.scrollIntoView()
+        return { route, location: hash, rendered, transition }
+        // @ts-ignore
+      }).catch(error => {
+        // force re-fetching at browser level incase it was offline at time of fetch
+        route.path = `${route.path.replace(/\?.*/, '')}?${Date.now()}`
+        // @ts-ignore
+        return console.warn('Router did not find:', route, error) || error
+      })
       // reuse route.component, if already set, otherwise import and define custom element
       this.dispatchEvent(new CustomEvent(this.getAttribute('route') || 'route', {
         /** @type {RouteEventDetail} */
         detail: {
-          info: (!route.createNew && route.component
-            ? Promise.resolve(route.component)
-            : import(route.path).then(module => {
-              // don't define already existing customElements
-              if (!customElements.get(route.name)) customElements.define(route.name, module.default)
-              // save it to route object for reuse. grab child if it already exists.
-              if (route.createNew) {
-                const key = typeof route.createNew === 'string'
-                  ? (new URL(this.location.href)).searchParams.get(route.createNew) || this.location.href
-                  : this.location.href
-                if (route.components) {
-                  route.component = route.components.has(key)
-                    ? route.components.get(key)
-                    : route.components.set(key, new module.default()).get(key) // eslint-disable-line
-                } else {
-                  route.components = new Map([[key, (route.component = new module.default())]]) // eslint-disable-line
-                }
-              } else {
-                route.component = this.children && this.children[0] && this.children[0].tagName === route.name.toUpperCase() ? this.children[0] : new module.default() // eslint-disable-line
-              }
-              if (typeof route.attributes === 'object') {
-                for (const key in route.attributes) {
-                  route.component.setAttribute(key, route.attributes[key] || '')
-                }
-              }
-              return route.component // eslint-disable-line
-            })).then(component => {
-            let rendered = false
-            let transition = null
-            if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) {
-              // @ts-ignore
-              if (document.startViewTransition) {
-                // @ts-ignore
-                transition = document.startViewTransition(() => Promise.resolve(this.render(component))) // https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
-              } else {
-                this.render(component)
-              }
-            }
-            if (route.scrollIntoView) component.scrollIntoView()
-            return { route, location: hash, rendered, transition }
-            // @ts-ignore
-          }).catch(error => {
-            // force re-fetching at browser level incase it was offline at time of fetch
-            route.path = `${route.path.replace(/\?.*/, '')}?${Date.now()}`
-            // @ts-ignore
-            return console.warn('Router did not find:', route, error) || error
-          })
+          info
         },
         bubbles: true,
         cancelable: true,
