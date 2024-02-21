@@ -208,10 +208,18 @@ export default class Router extends HTMLElement {
         info = Promise.resolve(route.component)
       } else {
         const key = typeof route.createNew === 'string'
-          ? (new URL(this.location.href)).searchParams.get(route.createNew) || this.location.href
+          // when the route.createNew can not be found, define index as a placeholder to be later picked up by the route.createNew value when set
+          ? (new URL(this.location.href)).searchParams.get(route.createNew) || 'index'
           : this.location.href
         // grab child if it already exists
-        if (route.createNew && route.components && route.components.has(key)) {
+        if (route.createNew && route.components && (route.components.has(key) || route.components.has('index'))) {
+          // before the createNew parameter is set, it gets set to index as a initial placeholder, grab this and reassign it in the map
+          if (!route.components.has(key)) {
+            const indexComponent = route.components.get('index')
+            // @ts-ignore
+            route.components.set(key, indexComponent)
+            route.components.delete('index')
+          }
           info = Promise.resolve(route.components.get(key))
         } else {
           // import the child if it is the first route to it
