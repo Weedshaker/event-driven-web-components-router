@@ -220,7 +220,7 @@ export default class Router extends HTMLElement {
             route.components.set(key, indexComponent)
             route.components.delete('index')
           }
-          info = Promise.resolve(route.components.get(key))
+          info = Promise.resolve(route.component = route.components.get(key))
         } else {
           // import the child if it is the first route to it
           info = import(route.path).then(module => {
@@ -245,7 +245,7 @@ export default class Router extends HTMLElement {
           })
         }
       }
-      info.then(component => {
+      info = info.then(component => {
         let rendered = false
         let transition = null
         if ((rendered = this.shouldComponentRender(route.name, isUrlEqual))) {
