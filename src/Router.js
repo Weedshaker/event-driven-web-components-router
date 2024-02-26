@@ -17,6 +17,11 @@
 }} RouteEventDetail
 */
 
+/** @typedef {{
+  component: HTMLElement
+}} PreRouteEventDetail
+*/
+
 /* global self */
 /* global HTMLElement */
 /* global location */
@@ -299,6 +304,16 @@ export default class Router extends HTMLElement {
    * @return {void}
    */
   render (component, hide = this.hide) {
+    // reuse route.component, if already set, otherwise import and define custom element
+    this.dispatchEvent(new CustomEvent(this.getAttribute('pre-route') || 'pre-route', {
+      /** @type {PreRouteEventDetail} */
+      detail: {
+        component
+      },
+      bubbles: true,
+      cancelable: true,
+      composed: true
+    }))
     if (hide) {
       let isComponentInChildren = false
       Array.from(this.children).forEach(
