@@ -38,6 +38,8 @@
  *  {hash|search|slash|null} [mode=null(null === hash && slash)] hash works out of the box but slash routing requires the web server to use the same entry file (see package.json serve command) as well as a link which shall route the slash must posses the attribute "route", see example at index.html.
  *  {Route[]} [routes=[preset]]
  *  {string} [route='route'] Route Event Name
+ *  {string} [pre-route='pre-route'] pre route Event Name
+ *  {string} [resume='resume'] Initial routing to last visited url if this attribute is present
  * }
  */
 export default class Router extends HTMLElement {
@@ -153,11 +155,11 @@ export default class Router extends HTMLElement {
        * @param {[state: any, unused: '', url: URL]} argArray
        */
       (target, thisArg, argArray) => {
-        const oldLocationSearch = this.location.search
+        const oldLocationSearch = this.location.search || this.location.pathname
         const newLocationSearch = (new URL(argArray[2])).search
         const result = target.apply(thisArg, argArray)
         this.resetLocation()
-        this.route(this.location.search, false, oldLocationSearch === newLocationSearch)
+        this.route(this.location.search || this.location.pathname, false, oldLocationSearch === newLocationSearch)
         return result
       }
     }
@@ -167,12 +169,15 @@ export default class Router extends HTMLElement {
 
   connectedCallback () {
     if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.addEventListener('hashchange', this.hashChangeListener)
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash' || this.getAttribute('mode') === 'search') {
       self.addEventListener('popstate', this.popstateListener)
       document.body.addEventListener('click', this.clickListener)
     }
     this.resetLocation()
-    if ((this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
+    let resumeHref
+    if (this.hasAttribute('resume') && (resumeHref = localStorage.getItem('Router-' + this.getAttribute('resume') || 'resume'))) {
+      self.history.replaceState(history.state, document.title, resumeHref)
+    } else if ((this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.hash)) ? this.location.hash : '#/', true)
     } else if ((this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
       this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.search)) ? this.location.search : '=/', true)
@@ -183,7 +188,7 @@ export default class Router extends HTMLElement {
 
   disconnectedCallback () {
     if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.removeEventListener('hashchange', this.hashChangeListener)
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
+    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash' || this.getAttribute('mode') === 'search') {
       self.removeEventListener('popstate', this.popstateListener)
       document.body.removeEventListener('click', this.clickListener)
     }
@@ -274,6 +279,7 @@ export default class Router extends HTMLElement {
         cancelable: true,
         composed: true
       }))
+      if (this.hasAttribute('resume')) localStorage.setItem('Router-' + this.getAttribute('resume') || 'resume', this.location.href)
     }
   }
 
