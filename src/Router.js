@@ -175,14 +175,20 @@ export default class Router extends HTMLElement {
     }
     this.resetLocation()
     let resumeHref
-    if (this.hasAttribute('resume') && (resumeHref = localStorage.getItem('Router-' + this.getAttribute('resume') || 'resume'))) {
+    const mode = (this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash'
+      ? {key: 'hash', defaultRoute: '#/'}
+      : (this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search'
+      ? {key: 'search', defaultRoute: '=/'}
+      : !this.hasAttribute('mode') || this.getAttribute('mode') === 'slash'
+      ? {key: 'pathname', defaultRoute: '/'}
+      : null
+    const hasRoute = mode && this.routes.some(route => Router.regExpTest(route.regExp, this.location[mode.key]))
+    if (hasRoute) {
+      this.route(this.location[mode.key], true)
+    } else if (this.hasAttribute('resume') && (resumeHref = localStorage.getItem(`router-${this.getAttribute('resume') || 'resume'}`))) {
       self.history.replaceState(history.state, document.title, resumeHref)
-    } else if ((this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.hash)) ? this.location.hash : '#/', true)
-    } else if ((this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.search)) ? this.location.search : '=/', true)
-    } else if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash') {
-      this.route(this.routes.some(route => Router.regExpTest(route.regExp, this.location.pathname)) ? this.location.pathname : '/', true)
+    } else if (mode) {
+      this.route(mode.defaultRoute, true)
     }
   }
 
@@ -279,7 +285,7 @@ export default class Router extends HTMLElement {
         cancelable: true,
         composed: true
       }))
-      if (this.hasAttribute('resume')) localStorage.setItem('Router-' + this.getAttribute('resume') || 'resume', this.location.href)
+      if (this.hasAttribute('resume')) localStorage.setItem(`router-${this.getAttribute('resume') || 'resume'}`, this.location.href)
     }
   }
 
