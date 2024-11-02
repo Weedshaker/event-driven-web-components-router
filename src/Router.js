@@ -4,6 +4,7 @@
       name: string,
       path: string,
       regExp: RegExp | RegExp[],
+      title?: string,
       attributes?: {key: any}
       component?: HTMLElement,
       components?: Map<string, HTMLElement>,
@@ -285,6 +286,7 @@ export default class Router extends HTMLElement {
         cancelable: true,
         composed: true
       }))
+      if (route.title) document.title = route.title
       if (this.hasAttribute('resume')) localStorage.setItem(`router-${this.getAttribute('resume') || 'resume'}`, this.location.href)
     }
   }
