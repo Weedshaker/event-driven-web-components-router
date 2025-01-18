@@ -29,6 +29,8 @@
 /* global decodeURIComponent */
 /* global customElements */
 /* global CustomEvent */
+/* global history */
+/* global localStorage */
 
 /**
  * As a controller, this component becomes a router
@@ -177,12 +179,12 @@ export default class Router extends HTMLElement {
     this.resetLocation()
     let resumeHref
     const mode = (this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash'
-      ? {key: 'hash', defaultRoute: '#/'}
+      ? { key: 'hash', defaultRoute: '#/' }
       : (this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search'
-      ? {key: 'search', defaultRoute: '=/'}
-      : !this.hasAttribute('mode') || this.getAttribute('mode') === 'slash'
-      ? {key: 'pathname', defaultRoute: '/'}
-      : null
+          ? { key: 'search', defaultRoute: '=/' }
+          : !this.hasAttribute('mode') || this.getAttribute('mode') === 'slash'
+              ? { key: 'pathname', defaultRoute: '/' }
+              : null
     const hasRoute = mode && this.routes.some(route => Router.regExpTest(route.regExp, this.location[mode.key]))
     if (hasRoute) {
       this.route(this.location[mode.key], true)
