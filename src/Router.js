@@ -144,7 +144,7 @@ export default class Router extends HTMLElement {
     this.popstateListener = event => {
       this.resetLocation()
       // hash changes are already going through the hashChangeListener
-      if (!this.location.hash) this.route(this.location.search || this.location.pathname, false, false)
+      if (!this.location.hash || this.isModeSlash || this.isModeSearch) this.route(this.location.search || this.location.pathname, false, false)
     }
     /**
      * Listens to history pushState and forwards the new hash to route
@@ -171,18 +171,18 @@ export default class Router extends HTMLElement {
   }
 
   connectedCallback () {
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.addEventListener('hashchange', this.hashChangeListener)
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash' || this.getAttribute('mode') === 'search') {
+    if (this.isModeHash) self.addEventListener('hashchange', this.hashChangeListener)
+    if (this.isModeSlash || this.isModeSearch) {
       self.addEventListener('popstate', this.popstateListener)
       document.body.addEventListener('click', this.clickListener)
     }
     this.resetLocation()
     let resumeHref
-    const mode = (this.location.hash && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'hash'
+    const mode = (this.location.hash && !this.hasAttribute('mode')) || this.isModeHash
       ? { key: 'hash', defaultRoute: '#/' }
-      : (this.location.search && !this.hasAttribute('mode')) || this.getAttribute('mode') === 'search'
+      : (this.location.search && !this.hasAttribute('mode')) || this.isModeSearch
           ? { key: 'search', defaultRoute: '=/' }
-          : !this.hasAttribute('mode') || this.getAttribute('mode') === 'slash'
+          : this.isModeSlash
               ? { key: 'pathname', defaultRoute: '/' }
               : null
     const hasRoute = mode && this.routes.some(route => Router.regExpTest(route.regExp, this.location[mode.key]))
@@ -196,8 +196,8 @@ export default class Router extends HTMLElement {
   }
 
   disconnectedCallback () {
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'hash') self.removeEventListener('hashchange', this.hashChangeListener)
-    if (!this.hasAttribute('mode') || this.getAttribute('mode') === 'slash' || this.getAttribute('mode') === 'search') {
+    if (this.isModeHash) self.removeEventListener('hashchange', this.hashChangeListener)
+    if (this.isModeSlash || this.isModeSearch) {
       self.removeEventListener('popstate', this.popstateListener)
       document.body.removeEventListener('click', this.clickListener)
     }
@@ -214,7 +214,7 @@ export default class Router extends HTMLElement {
   route (hash, replace = false, isUrlEqual = true) {
     if (!hash) return
     // escape on route call which is not set by hashchange event and trigger it here, if needed
-    if (hash.includes('#') && this.location.hash !== hash) {
+    if (this.isModeHash && hash.includes('#') && this.location.hash !== hash) {
       if (replace) return location.replace(hash)
       return (location.hash = hash)
     }
@@ -406,5 +406,26 @@ export default class Router extends HTMLElement {
   get location () {
     // @ts-ignore
     return this._location || (this._location = Object.keys(location).reduce((acc, curr) => Object.assign(acc, { [curr]: decodeURIComponent(location[curr]) }), {}))
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get isModeHash () {
+    return !this.hasAttribute('mode') || this.getAttribute('mode') === 'hash'
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get isModeSlash () {
+    return !this.hasAttribute('mode') || this.getAttribute('mode') === 'slash'
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get isModeSearch () {
+    return this.getAttribute('mode') === 'search'
   }
 }
