@@ -183,8 +183,8 @@ export default class Router extends HTMLElement {
       : (this.location.search && !this.hasAttribute('mode')) || this.isModeSearch
           ? { key: 'search', defaultRoute: '=/' }
           : this.isModeSlash
-              ? { key: 'pathname', defaultRoute: '/' }
-              : null
+            ? { key: 'pathname', defaultRoute: '/' }
+            : null
     const hasRoute = mode && this.routes.some(route => Router.regExpTest(route.regExp, this.location[mode.key]))
     if (hasRoute) {
       this.route(this.location[mode.key], true)
