@@ -132,7 +132,7 @@ export default class Router extends HTMLElement {
       if (!target || !target.getAttribute('href') || !target.hasAttribute('route')) return
       event.preventDefault()
       self.history.pushState({ ...history.state, pageTitle: document.title }, '', target.getAttribute('href').substring(0, 1) === '?'
-        ? `${this.location.origin}/${target.getAttribute('href')}`
+        ? `${this.location.origin}${this.location.pathname ? this.location.pathname : '/'}${target.getAttribute('href')}`
         : target.getAttribute('href')
       )
       this.resetLocation()
