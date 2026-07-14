@@ -188,7 +188,7 @@ export default class Router extends HTMLElement {
     const hasRoute = mode && this.routes.some(route => Router.regExpTest(route.regExp, this.location[mode.key]))
     if (hasRoute) {
       this.route(this.location[mode.key], true)
-    } else if (this.hasAttribute('resume') && (resumeHref = localStorage.getItem(`router-${this.getAttribute('resume') || 'resume'}`))) {
+    } else if (this.hasAttribute('resume') && (resumeHref = localStorage.getItem(`router-${this.getAttribute('resume') || 'resume'}`)) && resumeHref.includes(`${this.location.origin}${this.location.pathname}`)) {
       self.history.replaceState(history.state, document.title, resumeHref)
     } else if (mode) {
       this.route(mode.defaultRoute, true)
