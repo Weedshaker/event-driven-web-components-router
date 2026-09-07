@@ -135,8 +135,6 @@ export default class Router extends HTMLElement {
         ? `${this.location.origin}${this.location.pathname ? this.location.pathname : '/'}${target.getAttribute('href')}`
         : target.getAttribute('href')
       )
-      this.resetLocation()
-      this.route(target.getAttribute('href'), false, this.location.href.includes(target.getAttribute('href')))
     }
     /**
      * Listens to history navigation and forwards the new hash to route
@@ -363,7 +361,14 @@ export default class Router extends HTMLElement {
   static parseAttribute (attribute) {
     if (!attribute || typeof attribute !== 'string') return null
     try {
-      return JSON.parse(attribute.replace(/'/g, '"')) || null
+      return JSON.parse(attribute.replace(/'/g, '"'), (key, value) => {
+        // handle regex here, otherwise parse is going to mix up flags as part of the regex string
+        if (typeof value === 'string' && /^\/.*\/[a-z]*$/i.test(value)) {
+          const lastSlash = value.lastIndexOf('/')
+          return new RegExp(value.slice(1, lastSlash), value.slice(lastSlash + 1))
+        }
+        return value
+      }) || null
     } catch (e) {
       return null
     }
@@ -373,12 +378,12 @@ export default class Router extends HTMLElement {
    * Create a new Regular Expression
    *
    * @static
-   * @param {string|string[]} regExps
+   * @param {string|string[]|RegExp|RegExp[]|any} regExps
    * @return {RegExp[]}
    */
   static newRegExp (regExps) {
     if (!Array.isArray(regExps)) regExps = [regExps]
-    return regExps.filter(regExp => typeof regExp === 'string').map(regExp => new RegExp(regExp.replace(/^\/|\/$/g, '')))
+    return regExps.filter(regExp => typeof regExp === 'string' || regExp instanceof RegExp).map(regExp => typeof regExp === 'string' ? new RegExp(regExp.replace(/^\/|\/$/g, '')) : regExp)
   }
 
   /**
