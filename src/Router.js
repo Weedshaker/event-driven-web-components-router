@@ -232,8 +232,20 @@ export default class Router extends HTMLElement {
         if (route.createNew && route.components && route.components.has(key)) {
           info = Promise.resolve(route.component = route.components.get(key))
         } else {
+          let version = this.hasAttribute('version')
+            // @ts-ignore
+            ? this.getAttribute('version').includes('self')
+              // @ts-ignore
+              ? this.getAttribute('version').split('.').reduce((acc, curr) => {
+                if (curr === 'self') return self
+                if (acc[curr]) return acc[curr]
+                acc
+              }, '')
+              : this.getAttribute('version')
+            : ''
+          if (typeof version !== 'string') version = ''
           // import the child if it is the first route to it
-          info = import(route.path).then(module => {
+          info = import(`${route.path}?${version}`).then(module => {
             // don't define already existing customElements
             if (!customElements.get(route.name)) customElements.define(route.name, module.default)
             // save it to route object for reuse
